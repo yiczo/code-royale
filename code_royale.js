@@ -3,6 +3,14 @@ class Util {
 
     }
 
+    static gameCanvasWidth() {
+        return 1920;
+    }
+
+    static gameCanvasHeight() {
+        return 1000;
+    }
+
     static space() {
         return ' ';
     }
@@ -107,6 +115,23 @@ class Unit {
         Util.log('unit type' + Util.space() + UnitType.log(this.unitType));
         Util.log('health' + Util.space() + this.health);
         Util.log(Util.newLine());
+    }
+
+    queenNearestSiteCanBuild(sites) {
+        let nearestSite = null;
+        let nearestDistance = Util.gameCanvasWidth();
+        let keys = Object.keys(sites);
+        for (let k of keys) {
+            let site = sites[k];
+            if (site.canBuild()) {
+                let distance = site.distanceTo(this.x, this.y);
+                if (distance < nearestDistance) {
+                    nearestDistance = distance;
+                    nearestSite = site;
+                } 
+            }
+        }
+        return nearestSite;
     }
 }
 
