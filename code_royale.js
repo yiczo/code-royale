@@ -231,6 +231,28 @@ class Site {
     }
 }
 
+class BuildType {
+    constructor() {
+
+    }
+
+    static Knight() {
+        return 'BARRACKS-KNIGHT';
+    }
+
+    static Archer() {
+        return 'BARRACKS-ARCHER';
+    }
+
+    static Giant() {
+        return 'BARRACKS-GIANT';
+    }
+
+    static Tower() {
+        return 'TOWER';
+    }
+}
+
 class General {
     constructor() {
         this.sites = {};
@@ -349,7 +371,7 @@ class CommandManager {
         let deltaX;
         let deltaY;
 
-        if (x === queen.x) {
+        if (x === queen.x) { // avoid divide by zero
             deltaX = 0;
             deltaY = y - queen.y;
         } else {
@@ -375,28 +397,106 @@ class CommandManager {
         let destinationY = Math.floor(queen.y + deltaY);
         return 'MOVE' + Util.space() + destinationX + Util.space() + destinationY;
     }
+
+    build(site, type) {
+        return 'BUILD' + Util.space() + site.siteId + Util.space() + type;
+    }
+
+    train(barracks) {
+        let originalTrainString = 'TRAIN';
+        for (let b of barracks) {
+            originalTrainString += Util.space();
+            originalTrainString += b.siteId;
+        }
+        return originalTrainString;
+    }
 }
 
-class StrategyManager {
-    constructor() {
-        
-    }
-
-    static instance(...args) {
-        this.i = this.i || new StrategyManager(...args);
-        return this.i;
-    }
-
-    update(general) {
-        this.strategy1(general);
-    }
-
+class Strategy1 {
     // move to nearest no structure site
     // build knight barracks
     // train knight as much as possible
     // loop
-    strategy1(general) {
-        CommandManager.instance().executeCommand(CommandManager.instance().moveTowards(general.queen, 1920, 1000));
+    constructor() {
+        this.general = null;
+        this.destinationSite = null;
+    }
+
+    static instance(...args) {
+        this.i = this.i || new Strategy1(...args);
+        return this.i;
+    }
+
+    update(general) {
+        this.general = general;
+
+        if (this.tryBuildKnightBarracks()) {
+
+        } else {
+            this.tryMoveToDestinationSite();
+        }
+
+        this.tryTrainKnightsAsMoreAsPossible();
+    }
+
+    tryBuildKnightBarracks() {
+        let general = this.general;
+        let touchedSiteId = general.touchedSiteId;
+        if (touchedSiteId != -1) {
+            let touchedSite = general.sites[touchedSiteId];
+            if (touchedSite.canBuild()) {
+                let cm = CommandManager.instance();
+                cm.executeCommand(cm.build(touchedSite, BuildType.Knight()));
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // try move to nearest site, if not have, setup a new one
+    tryMoveToDestinationSite() {
+        if (this.destinationSite === null) {
+            this.setupNewDestinationSite();
+            this.moveTowardsDestinationSite();
+        } else {
+            if (this.destinationSite.canBuild()) {
+                this.moveTowardsDestinationSite();
+            } else {
+                this.setupNewDestinationSite();
+                this.moveTowardsDestinationSite();
+            }
+        }
+    }
+
+    setupNewDestinationSite() {
+        let nearestCanBuildSite = this.general.queen.queenNearestSiteCanBuild(this.general.sites);
+        this.destinationSite = nearestCanBuildSite;
+    }
+
+    moveTowardsDestinationSite() {
+        let cm = CommandManager.instance();
+        cm.executeCommand(cm.moveTowards(this.general.queen, this.destinationSite.x, this.destinationSite.y));
+    }
+
+    tryTrainKnightsAsMoreAsPossible() {
+        let barracks = []
+        let estimateGold = this.general.gold;
+
+        let keys = Object.keys(this.general.sites);
+        for (let k of keys) {
+            let s = this.general.sites[k];
+            if (s.owner === SiteOwner.Friendly()) {
+                if (s.structureType === SiteStructureType.Barracks()) {
+                    if (estimateGold > 80) {
+                        barracks.push(s);
+                        estimateGold -= 80;
+                    }
+                }
+            }
+        }
+
+        let cm = CommandManager.instance();
+        cm.executeCommand(cm.train(barracks));
     }
 }
 
@@ -452,10 +552,10 @@ while (true) {
 
     // General.instance().logUnits();
 
-    StrategyManager.instance().update(General.instance());
+    Strategy1.instance().update(General.instance());
 
     // First line: A valid queen action
     // Second line: A set of training instructions
     // print('WAIT');
-    print('TRAIN');
+    // print('TRAIN');
 }
