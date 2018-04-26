@@ -194,11 +194,20 @@ class Site {
         }
         return false;
     }
+
+    distanceTo(x, y) {
+        let deltaX = this.x - x;
+        let deltaY = this.y - y;
+        return Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    }
 }
 
 class General {
     constructor() {
         this.sites = {};
+
+        this.gold = 0;
+        this.touchedSiteId = -1;
 
         this.queen = null;
         this.knights = [];
@@ -291,6 +300,21 @@ class General {
     }
 }
 
+class StrategyManager {
+    constructor() {
+        
+    }
+
+    static instance(...args) {
+        this.i = this.i || new StrategyManager(...args);
+        return this.i;
+    }
+
+    update(general) {
+
+    }
+}
+
 var numSites = parseInt(readline());
 for (var i = 0; i < numSites; i++) {
     var inputs = readline().split(' ');
@@ -307,6 +331,10 @@ while (true) {
     var inputs = readline().split(' ');
     var gold = parseInt(inputs[0]);
     var touchedSite = parseInt(inputs[1]); // -1 if none
+
+    General.instance().gold = gold;
+    General.instance().touchedSiteId = touchedSite;
+
     for (var i = 0; i < numSites; i++) {
         var inputs = readline().split(' ');
         var siteId = parseInt(inputs[0]);
@@ -337,7 +365,9 @@ while (true) {
         General.instance().updateUnit(unit);
     }
 
-    General.instance().logUnits();
+    // General.instance().logUnits();
+
+    StrategyManager.instance().update(General.instance());
 
     // First line: A valid queen action
     // Second line: A set of training instructions
