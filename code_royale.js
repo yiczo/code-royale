@@ -11,6 +11,10 @@ class Util {
         return 1000;
     }
 
+    static maxStepLength() {
+        return 60;
+    }
+
     static space() {
         return ' ';
     }
@@ -325,6 +329,54 @@ class General {
     }
 }
 
+class CommandManager {
+    constructor() {
+
+    }
+
+    static instance(...args) {
+        this.i = this.i || new CommandManager(...args);
+        return this.i;
+    }
+
+    executeCommand(command) {
+        print(command);
+    }
+
+    // commands
+
+    moveTowards(queen, x, y) {
+        let deltaX;
+        let deltaY;
+
+        if (x === queen.x) {
+            deltaX = 0;
+            deltaY = y - queen.y;
+        } else {
+            let tan = (y - queen.y) / (x - queen.x);
+            let step = Util.maxStepLength();
+            deltaX = Math.sqrt(step * step / (1 + tan * tan));
+            deltaY = deltaX * tan;
+        }
+
+        if (x - queen.x > 0) {
+            deltaX = Math.abs(deltaX);
+        } else {
+            deltaX = -Math.abs(deltaX);
+        }
+
+        if (y - queen.y > 0) {
+            deltaY = Math.abs(deltaY);
+        } else {
+            deltaY = -Math.abs(deltaY);
+        }
+
+        let destinationX = Math.floor(queen.x + deltaX);
+        let destinationY = Math.floor(queen.y + deltaY);
+        return 'MOVE' + Util.space() + destinationX + Util.space() + destinationY;
+    }
+}
+
 class StrategyManager {
     constructor() {
         
@@ -336,7 +388,15 @@ class StrategyManager {
     }
 
     update(general) {
+        this.strategy1(general);
+    }
 
+    // move to nearest no structure site
+    // build knight barracks
+    // train knight as much as possible
+    // loop
+    strategy1(general) {
+        CommandManager.instance().executeCommand(CommandManager.instance().moveTowards(general.queen, 1920, 1000));
     }
 }
 
@@ -396,6 +456,6 @@ while (true) {
 
     // First line: A valid queen action
     // Second line: A set of training instructions
-    print('WAIT');
+    // print('WAIT');
     print('TRAIN');
 }
