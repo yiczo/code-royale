@@ -504,12 +504,134 @@ class Strategy1 {
     }
 }
 
+class Strategy3 {
+    // wait at initial corner
+    // 12 knights rush
+    constructor() {
+        this.general = null;
+        this.destinationSite = null;
+
+        this.knightSites = [];
+
+        this.corners = [
+            [0, 0],
+            [0, 1000],
+            [1920, 0],
+            [1920, 1000],
+        ];
+
+        this.initialX = -1;
+        this.initialY = -1;
+    }
+
+    static instance(...args) {
+        this.i = this.i || new Strategy3(...args);
+        return this.i;
+    }
+
+    nearestCorner() {
+        let nearest = [0, 0];
+
+        let nearestDistance = Util.gameCanvasWidth();
+
+        for (let corner in this.corners) {
+            let distance = Math.sqrt( (this.initialX - corner[0]) * (this.initialX - corner[0]) + (this.initialY - corner[1]) * (this.initialY - corner[1]));
+            if (distance < nearestDistance) {
+                nearestDistance = distance;
+                nearest = corner;
+            }
+        }
+
+        return nearest;
+    }
+
+    update(general) {
+        this.general = general;
+
+        if (this.initialX === -1) {
+            this.initialX = general.queen.x;
+        }
+
+        if (this.initialY === -1) {
+            this.initialY = general.queen.y;
+        }
+
+        if (this.tryBuildKnightBarrack()) {
+
+        } else {
+            this.tryMoveToDestinationSite();
+        }
+
+        this.train();
+    }
+
+    tryMoveToDestinationSite() {
+        if (this.knightSites.length === 3) {
+            let cm = CommandManager.instance();
+            cm.executeCommand(cm.moveTowards(this.general.queen, this.nearestCorner()[0], this.nearestCorner()[1]));
+            return;
+        }
+
+        if (this.destinationSite === null) {
+            this.setupNewDestinationSite();
+            this.moveTowardsDestinationSite();
+        } else {
+            if (this.destinationSite.canBuild()) {
+                this.moveTowardsDestinationSite();
+            } else {
+                this.setupNewDestinationSite();
+                this.moveTowardsDestinationSite();
+            }
+        }
+    }
+
+    setupNewDestinationSite() {
+        let nearestCanBuildSite = this.general.queen.queenNearestSiteCanBuild(this.general.sites);
+        this.destinationSite = nearestCanBuildSite;
+    }
+
+    moveTowardsDestinationSite() {
+        let cm = CommandManager.instance();
+
+        if (this.destinationSite === null) {
+            cm.executeCommand(cm.moveTowards(this.general.queen, this.nearestCorner()[0], this.nearestCorner()[1]));
+        } else {
+            cm.executeCommand(cm.moveTowards(this.general.queen, this.destinationSite.x, this.destinationSite.y));
+        }
+    }
+
+    tryBuildKnightBarrack() {
+        let general = this.general;
+        let touchedSiteId = general.touchedSiteId;
+        if (touchedSiteId != -1) {
+            let touchedSite = general.sites[touchedSiteId];
+            if (touchedSite.canBuild()) {
+                if (this.knightSites.length < 3) {
+                    let cm = CommandManager.instance();
+                    cm.executeCommand(cm.build(touchedSite, BuildType.Knight()));
+                    this.knightSites.push(touchedSiteId);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    train() {
+        let string = 'TRAIN';
+        if (this.general.gold >= 80 * 3) {
+            if (this.knightSites.length == 3) {
+                for (let i of this.knightSites) {
+                    string += Util.space();
+                    string += i;
+                }
+            }
+        }
+        print(string);
+    }
+}
+
 class Strategy2 {
-    // build one giant barrack and one knight barrack
-    // then build tower as much as possible
-    // train one gaint to destroy enemy's building firstly
-    // if num of knights less than 4, train knights
-    // else train archers
     constructor() {
         this.general = null;
         this.destinationSite = null;
@@ -527,9 +649,7 @@ class Strategy2 {
     update(general) {
         this.general = general;
 
-        if (this.tryBuildOnlyGiantBarrack()) {
-
-        } else if (this.tryBuildOnlyKnightBarrack()) {
+        if (this.tryBuildOnlyKnightBarrack()) {
 
         } else if (this.tryBuildOnlyArcherBarrack()) {
 
@@ -600,7 +720,7 @@ class Strategy2 {
         if (touchedSiteId != -1) {
             let touchedSite = general.sites[touchedSiteId];
             if (touchedSite.canBuild()) {
-                if (this.knightSiteId != -1 & this.giantSiteId != -1) {
+                if (this.knightSiteId != -1) {
                     let cm = CommandManager.instance();
                     cm.executeCommand(cm.build(touchedSite, BuildType.Tower()));
                     return true;
@@ -640,7 +760,7 @@ class Strategy2 {
     }
 
     tryTrain() {
-        if (this.general.knights.length < 4) {
+        if (this.general.knights.length < 8) {
             if (this.general.gold > 80 & this.knightSiteId != -1) {
                 let site = this.general.sites[this.knightSiteId];
                 let cm = CommandManager.instance();
@@ -738,7 +858,7 @@ while (true) {
 
     // General.instance().logUnits();
 
-    Strategy2.instance().update(General.instance());
+    Strategy3.instance().update(General.instance());
 
     // First line: A valid queen action
     // Second line: A set of training instructions
