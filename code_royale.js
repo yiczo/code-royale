@@ -16,7 +16,100 @@ class Util {
     }
 }
 
-// weird implementation
+class UnitOwner {
+    constructor() {
+
+    }
+
+    static log(type) {
+        let o = {
+            '0': 'Friendly',
+            '1': 'Enemy',
+        };
+        return o[type];
+    }
+
+    static Friendly() {
+        return 0;
+    }
+
+    static Enemy() {
+        return 1;
+    }
+}
+
+class UnitType {
+    constructor() {
+
+    }
+
+    static log(type) {
+        let o = {
+            '-1': 'Queen',
+            '0': 'Knight',
+            '1': 'Archer',
+            '2': 'Giant',
+        };
+        return o[type];
+    }
+
+    static Queen() {
+        return -1;
+    }
+
+    static Knight() {
+        return 0;
+    }
+
+    static Archer() {
+        return 1;
+    }
+
+    static Giant() {
+        return 2;
+    }
+}
+
+class Unit {
+    constructor(x, y, owner, unitType, health) {
+        this.x = x;
+        this.y = y;
+        this.owner = owner;
+        this.unitType = unitType;
+        this.health = health;
+    }
+
+    isMine() {
+        return (this.owner === UnitOwner.Friendly());
+    }
+
+    isQueen() {
+        return (this.unitType === UnitType.Queen());
+    }
+
+    isKnight() {
+        return (this.unitType === UnitType.Knight());
+    }
+
+    isArcher() {
+        return (this.unitType === UnitType.Archer());
+    }
+
+    isGiant() {
+        return (this.unitType == UnitType.Giant());
+    }
+
+    log() {
+        Util.log('This is a Unit' + Util.space() + UnitType.log(this.unitType));
+        Util.log('x' + Util.space() + this.x);
+        Util.log('y' + Util.space() + this.y);
+        Util.log('owner' + Util.space() + UnitOwner.log(this.owner));
+        Util.log('unit type' + Util.space() + UnitType.log(this.unitType));
+        Util.log('health' + Util.space() + this.health);
+        Util.log(Util.newLine());
+    }
+}
+
 class SiteStructureType {
     constructor() {
 
@@ -27,7 +120,7 @@ class SiteStructureType {
             '-1': 'No Structure',
             '1': 'Tower',
             '2': 'Barracks',
-        }
+        };
         return o[type];
     }
 
@@ -54,7 +147,7 @@ class SiteOwner {
             '-1': 'No Structure',
             '0': 'Friendly',
             '1': 'Enemy',
-        }
+        };
         return o[type];
     }
 
@@ -92,11 +185,30 @@ class Site {
         Util.log('owner' + Util.space() + SiteOwner.log(this.owner));
         Util.log(Util.newLine());
     }
+
+    canBuild() {
+        if (this.structureType === SiteStructureType.NoStructure()) {
+            if (this.owner == SiteOwner.NoStructure()) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
 
 class General {
     constructor() {
-        this.sites = {}
+        this.sites = {};
+
+        this.queen = null;
+        this.knights = [];
+        this.archers = [];
+        this.giants = [];
+
+        this.enemyQueen = null;
+        this.enemyKnights = [];
+        this.enemyArchers = [];
+        this.enemyGiants = [];
     }
 
     static instance(...args) {
@@ -121,6 +233,61 @@ class General {
             let site = this.sites[k];
             site.log();
         }
+    }
+
+    clearUnitsStatus() {
+        this.queen = null;
+        this.knights = [];
+        this.archers = [];
+        this.giants = [];
+
+        this.enemyQueen = null;
+        this.enemyKnights = [];
+        this.enemyArchers = [];
+        this.enemyGiants = [];
+    }
+
+    updateUnit(unit) {
+        if (unit.isMine()) {
+            if (unit.isQueen()) {
+                this.queen = unit;
+            } else if (unit.isKnight()) {
+                this.knights.push(unit);
+            } else if (unit.isArcher()) {
+                this.archers.push(unit);
+            } else if (unit.isGiant()) {
+                this.giants.push(unit);
+            }
+        } else {
+            if (unit.isQueen()) {
+                this.enemyQueen = unit;
+            } else if (unit.isKnight()) {
+                this.enemyKnights.push(unit);
+            } else if (unit.isArcher()) {
+                this.enemyArchers.push(unit);
+            } else if (unit.isGiant()) {
+                this.enemyGiants.push(unit);
+            }
+        }
+    }
+
+    logOneTypeUnits(unitArray, titleString) {
+        Util.log('Num of ' + titleString + Util.space() + unitArray.length + Util.newLine());
+        for (let u of unitArray) {
+            u.log();
+        }
+    }
+
+    logUnits() {
+        this.queen.log();
+        this.logOneTypeUnits(this.knights, 'My Knights');
+        this.logOneTypeUnits(this.archers, 'My Archers');
+        this.logOneTypeUnits(this.giants, 'My Giants');
+
+        this.enemyQueen.log();
+        this.logOneTypeUnits(this.enemyKnights, 'Enemy Knights');
+        this.logOneTypeUnits(this.enemyArchers, 'Enemy Archers');
+        this.logOneTypeUnits(this.enemyGiants, 'Enemy Giants');
     }
 }
 
@@ -153,7 +320,9 @@ while (true) {
         General.instance().updateSite(siteId, structureType, owner);
     }
 
-    General.instance().logSites();
+    // General.instance().logSites();
+
+    General.instance().clearUnitsStatus();
 
     var numUnits = parseInt(readline());
     for (var i = 0; i < numUnits; i++) {
@@ -163,7 +332,12 @@ while (true) {
         var owner = parseInt(inputs[2]);
         var unitType = parseInt(inputs[3]); // -1 = QUEEN, 0 = KNIGHT, 1 = ARCHER, 2 = GIANT
         var health = parseInt(inputs[4]);
+
+        let unit = new Unit(x, y, owner, unitType, health);
+        General.instance().updateUnit(unit);
     }
+
+    General.instance().logUnits();
 
     // First line: A valid queen action
     // Second line: A set of training instructions
