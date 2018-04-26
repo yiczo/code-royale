@@ -16,12 +16,70 @@ class Util {
     }
 }
 
+// weird implementation
+class SiteStructureType {
+    constructor() {
+
+    }
+
+    static log(type) {
+        let o = {
+            '-1': 'No Structure',
+            '1': 'Tower',
+            '2': 'Barracks',
+        }
+        return o[type];
+    }
+
+    static NoStructure() {
+        return -1;
+    }
+
+    static Tower() {
+        return 1;
+    }
+
+    static Barracks() {
+        return 2;
+    }
+}
+
+class SiteOwner {
+    constructor() {
+
+    }
+
+    static log(type) {
+        let o = {
+            '-1': 'No Structure',
+            '0': 'Friendly',
+            '1': 'Enemy',
+        }
+        return o[type];
+    }
+
+    static NoStructure() {
+        return -1;
+    }
+
+    static Friendly() {
+        return 0;
+    }
+
+    static Enemy() {
+        return 1;
+    }
+}
+
 class Site {
     constructor(siteId, x, y, radius) {
         this.siteId = siteId;
         this.x = x;
         this.y = y;
         this.radius = radius;
+
+        this.structureType = -1;
+        this.owner = -1;
     }
 
     log() {
@@ -30,6 +88,8 @@ class Site {
         Util.log('x' + Util.space() + this.x);
         Util.log('y' + Util.space() + this.y);
         Util.log('radius' + Util.space() + this.radius);
+        Util.log('structure type' + Util.space() + SiteStructureType.log(this.structureType));
+        Util.log('owner' + Util.space() + SiteOwner.log(this.owner));
         Util.log(Util.newLine());
     }
 }
@@ -46,6 +106,12 @@ class General {
 
     addSite(site) {
         this.sites[site.siteId] = site;
+    }
+
+    updateSite(siteId, structureType, owner) {
+        let site = this.sites[siteId];
+        site.structureType = structureType;
+        site.owner = owner;
     }
 
     logSites() {
@@ -70,8 +136,6 @@ for (var i = 0; i < numSites; i++) {
     General.instance().addSite(site);
 }
 
-General.instance().logSites();
-
 while (true) {
     var inputs = readline().split(' ');
     var gold = parseInt(inputs[0]);
@@ -85,7 +149,12 @@ while (true) {
         var owner = parseInt(inputs[4]); // -1 = No structure, 0 = Friendly, 1 = Enemy
         var param1 = parseInt(inputs[5]);
         var param2 = parseInt(inputs[6]);
+
+        General.instance().updateSite(siteId, structureType, owner);
     }
+
+    General.instance().logSites();
+
     var numUnits = parseInt(readline());
     for (var i = 0; i < numUnits; i++) {
         var inputs = readline().split(' ');
