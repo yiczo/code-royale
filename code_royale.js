@@ -403,6 +403,10 @@ class CommandManager {
     }
 
     train(barracks) {
+        if (barracks.length === 0) {
+            return 'TRAIN';
+        }
+
         let originalTrainString = 'TRAIN';
         for (let b of barracks) {
             originalTrainString += Util.space();
@@ -479,7 +483,7 @@ class Strategy1 {
     }
 
     tryTrainKnightsAsMoreAsPossible() {
-        let barracks = []
+        let barracks = [];
         let estimateGold = this.general.gold;
 
         let keys = Object.keys(this.general.sites);
@@ -497,6 +501,188 @@ class Strategy1 {
 
         let cm = CommandManager.instance();
         cm.executeCommand(cm.train(barracks));
+    }
+}
+
+class Strategy2 {
+    // build one giant barrack and one knight barrack
+    // then build tower as much as possible
+    // train one gaint to destroy enemy's building firstly
+    // if num of knights less than 4, train knights
+    // else train archers
+    constructor() {
+        this.general = null;
+        this.destinationSite = null;
+
+        this.giantSiteId = -1;
+        this.knightSiteId = -1;
+        this.archerSiteId = -1;   
+    }
+
+    static instance(...args) {
+        this.i = this.i || new Strategy2(...args);
+        return this.i;
+    }
+
+    update(general) {
+        this.general = general;
+
+        if (this.tryBuildOnlyGiantBarrack()) {
+
+        } else if (this.tryBuildOnlyKnightBarrack()) {
+
+        } else if (this.tryBuildOnlyArcherBarrack()) {
+
+        } else if (this.tryBuildTower()) {
+
+        } else {
+            this.tryMoveToDestinationSite();
+        }
+
+        this.tryTrain();
+    }
+
+    tryBuildOnlyGiantBarrack() {
+        let general = this.general;
+        let touchedSiteId = general.touchedSiteId;
+        if (touchedSiteId != -1) {
+            let touchedSite = general.sites[touchedSiteId];
+            if (touchedSite.canBuild()) {
+                if (this.giantSiteId === -1) {
+                    let cm = CommandManager.instance();
+                    cm.executeCommand(cm.build(touchedSite, BuildType.Giant()));
+                    this.giantSiteId = touchedSiteId;
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    tryBuildOnlyKnightBarrack() {
+        let general = this.general;
+        let touchedSiteId = general.touchedSiteId;
+        if (touchedSiteId != -1) {
+            let touchedSite = general.sites[touchedSiteId];
+            if (touchedSite.canBuild()) {
+                if (this.knightSiteId === -1) {
+                    let cm = CommandManager.instance();
+                    cm.executeCommand(cm.build(touchedSite, BuildType.Knight()));
+                    this.knightSiteId = touchedSite.siteId;
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    tryBuildOnlyArcherBarrack() {
+        let general = this.general;
+        let touchedSiteId = general.touchedSiteId;
+        if (touchedSiteId != -1) {
+            let touchedSite = general.sites[touchedSiteId];
+            if (touchedSite.canBuild()) {
+                if (this.archerSiteId === -1) {
+                    let cm = CommandManager.instance();
+                    cm.executeCommand(cm.build(touchedSite, BuildType.Archer()));
+                    this.archerSiteId = touchedSite.siteId;
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+
+    tryBuildTower() {
+        let general = this.general;
+        let touchedSiteId = general.touchedSiteId;
+        if (touchedSiteId != -1) {
+            let touchedSite = general.sites[touchedSiteId];
+            if (touchedSite.canBuild()) {
+                if (this.knightSiteId != -1 & this.giantSiteId != -1) {
+                    let cm = CommandManager.instance();
+                    cm.executeCommand(cm.build(touchedSite, BuildType.Tower()));
+                    return true;
+                }
+            }
+        }
+        return false;   
+    }
+
+    tryMoveToDestinationSite() {
+        if (this.destinationSite === null) {
+            this.setupNewDestinationSite();
+            this.moveTowardsDestinationSite();
+        } else {
+            if (this.destinationSite.canBuild()) {
+                this.moveTowardsDestinationSite();
+            } else {
+                this.setupNewDestinationSite();
+                this.moveTowardsDestinationSite();
+            }
+        }
+    }
+
+    setupNewDestinationSite() {
+        let nearestCanBuildSite = this.general.queen.queenNearestSiteCanBuild(this.general.sites);
+        this.destinationSite = nearestCanBuildSite;
+    }
+
+    moveTowardsDestinationSite() {
+        let cm = CommandManager.instance();
+
+        if (this.destinationSite === null) {
+            cm.executeCommand(cm.moveTowards(this.general.queen, 0, 0));
+        } else {
+            cm.executeCommand(cm.moveTowards(this.general.queen, this.destinationSite.x, this.destinationSite.y));
+        }
+    }
+
+    tryTrain() {
+        if (this.general.knights.length < 4) {
+            if (this.general.gold > 80 & this.knightSiteId != -1) {
+                let site = this.general.sites[this.knightSiteId];
+                let cm = CommandManager.instance();
+                cm.executeCommand(cm.train([site]));
+                return;
+            }
+            print('TRAIN');
+            return;
+        }
+
+        // if (this.general.giants.length === 0) {
+        //     if (this.general.gold >= 120 & this.giantSiteId != -1) {
+        //         let site = this.general.sites[this.giantSiteId];
+        //         let cm = CommandManager.instance();
+        //         cm.executeCommand(cm.train([site]));
+        //         return;
+        //     }
+        //     print('TRAIN');
+        //     return;
+        // }
+
+        if (this.general.gold >= 100 & this.archerSiteId != -1) {
+            let site = this.general.sites[this.archerSiteId];
+            let cm = CommandManager.instance();
+            cm.executeCommand(cm.train([site]));
+            return;
+        }
+        print('TRAIN');
+        return;
+
+        // if (this.general.giants.length >= 1 & this.general.gold >= 80 & this.knightSiteId != -1) {
+        //     let site = this.general.sites[this.knightSiteId];
+        //     let cm = CommandManager.instance();
+        //     cm.executeCommand(cm.train([site]));
+        // } else if (this.general.gold > 120 & this.giantSiteId != -1) {
+        //     let site = this.general.sites[this.giantSiteId];
+        //     let cm = CommandManager.instance();
+        //     cm.executeCommand(cm.train([site]));       
+        // } else {
+        //     let cm = CommandManager.instance();
+        //     cm.executeCommand(cm.train([]));   
+        // }
     }
 }
 
@@ -552,7 +738,7 @@ while (true) {
 
     // General.instance().logUnits();
 
-    Strategy1.instance().update(General.instance());
+    Strategy2.instance().update(General.instance());
 
     // First line: A valid queen action
     // Second line: A set of training instructions
