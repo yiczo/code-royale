@@ -20,7 +20,7 @@ const initialMyQueenNearestCorner = function() {
     let resultCorner = [0, 0];
     let nearestDistance = FieldDiagonal;
     for (let c of corners) {
-        let distance = Math.sqrt( (MyQueen.x - c[0]) * (MyQueen.x - c[0]) + (MyQueen.y - c[1]) * (MyQueen.y - c[1]) );
+        let distance = Math.sqrt( (initialMyQueenX - c[0]) * (initialMyQueenX - c[0]) + (initialMyQueenY - c[1]) * (initialMyQueenY - c[1]) );
         if (distance <= nearestDistance) {
             nearestDistance = distance;
             resultCorner = c;

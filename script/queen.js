@@ -13,12 +13,12 @@ const setInitialMyQueenPosition = function(queen) {
 };
 
 const myQueenNearestCanBuildInitialSideSite = function() {
-    let sites = sitesInSide(initialMyQueenSide(MyQueen));
+    let sitesInMySide = sitesInSide(initialMyQueenSide(MyQueen));
 
     let resultSite = null;
     let nearestDistance = FieldDiagonal;
 
-    for (let s of sites) {
+    for (let s of sitesInMySide) {
         if (s.canBuild()) {
             let d = s.distanceTo(MyQueen.x, MyQueen.y)
             if (d <= nearestDistance) {
