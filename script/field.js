@@ -1,11 +1,33 @@
 const FieldWidth = 1920;
 const FieldHeight = 1000;
+const FieldDiagonal = Math.sqrt(1920 * 1920 + 1000 * 1000);
 
 const MagicSideDivideExtra = 0.1 * FieldWidth;
 
 const FieldSide = {
     'Left': 'LeftSide',
     'Right': 'RightSide',
+};
+
+const initialMyQueenNearestCorner = function() {
+    let corners = [
+        [0, 0],
+        [FieldWidth, 0],
+        [0, FieldHeight],
+        [FieldWidth, FieldHeight],
+    ];
+
+    let resultCorner = [0, 0];
+    let nearestDistance = FieldDiagonal;
+    for (let c of corners) {
+        let distance = Math.sqrt( (MyQueen.x - c[0]) * (MyQueen.x - c[0]) + (MyQueen.y - c[1]) * (MyQueen.y - c[1]) );
+        if (distance <= nearestDistance) {
+            nearestDistance = distance;
+            resultCorner = c;
+        }
+    }
+
+    return resultCorner;
 };
 
 const initialMyQueenSide = function(queen) {

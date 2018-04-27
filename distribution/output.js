@@ -21,7 +21,7 @@ const myQueenNearestCanBuildInitialSideSite = function() {
     let sites = sitesInSide(initialMyQueenSide(MyQueen));
 
     let resultSite = null;
-    let nearestDistance = FieldWidth;
+    let nearestDistance = FieldDiagonal;
 
     for (let s of sites) {
         if (s.canBuild()) {
@@ -144,12 +144,34 @@ class Barrack {
 
 const FieldWidth = 1920;
 const FieldHeight = 1000;
+const FieldDiagonal = Math.sqrt(1920 * 1920 + 1000 * 1000);
 
 const MagicSideDivideExtra = 0.1 * FieldWidth;
 
 const FieldSide = {
     'Left': 'LeftSide',
     'Right': 'RightSide',
+};
+
+const initialMyQueenNearestCorner = function() {
+    let corners = [
+        [0, 0],
+        [FieldWidth, 0],
+        [0, FieldHeight],
+        [FieldWidth, FieldHeight],
+    ];
+
+    let resultCorner = [0, 0];
+    let nearestDistance = FieldDiagonal;
+    for (let c of corners) {
+        let distance = Math.sqrt( (MyQueen.x - c[0]) * (MyQueen.x - c[0]) + (MyQueen.y - c[1]) * (MyQueen.y - c[1]) );
+        if (distance <= nearestDistance) {
+            nearestDistance = distance;
+            resultCorner = c;
+        }
+    }
+
+    return resultCorner;
 };
 
 const initialMyQueenSide = function(queen) {
@@ -284,6 +306,7 @@ const clearKindsOfUnitStatus = function() {
 
 
 const strategy1 = function() {
+    // 8 knights rush together, build towers in initial side
     let nearest = myQueenNearestCanBuildInitialSideSite();
     if (nearest === null) {
         print('WAIT');
@@ -297,6 +320,30 @@ const strategy1 = function() {
 
     let trainString = 'TRAIN';
     if (Gold >= KnightTrainPrice * 2) {
+        for (let b of MyBarracks) {
+            trainString += ' ' + b.siteId;
+        }
+    }
+    print(trainString);
+};
+
+const strategy2 = function() {
+    // 8 knights rush together, build towers in initial side, 
+    // if nothing can build, return to initial nearest corner
+    let nearest = myQueenNearestCanBuildInitialSideSite();
+    if (nearest === null) {
+        let nearestInitialCorner = initialMyQueenNearestCorner();
+        print('MOVE' + ' ' + nearestInitialCorner[0] + ' ' + nearestInitialCorner[1]);
+    } else {
+        if (MyBarracks.length < 2) {
+            print('BUILD' + ' ' + nearest.siteId + ' ' + 'BARRACKS-KNIGHT');
+        } else {
+            print('BUILD' + ' ' + nearest.siteId + ' ' + 'TOWER');
+        }
+    }
+
+    let trainString = 'TRAIN';
+    if ((Gold >= KnightTrainPrice & MyBarracks.length === 1) | (Gold >= KnightTrainPrice * 2)) {
         for (let b of MyBarracks) {
             trainString += ' ' + b.siteId;
         }
@@ -383,5 +430,5 @@ while (true) {
     // print('WAIT');
     // print('TRAIN');
 
-    strategy1();
+    strategy2();
 }

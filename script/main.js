@@ -77,5 +77,5 @@ while (true) {
     // print('WAIT');
     // print('TRAIN');
 
-    strategy1();
+    strategy2();
 }

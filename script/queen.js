@@ -16,7 +16,7 @@ const myQueenNearestCanBuildInitialSideSite = function() {
     let sites = sitesInSide(initialMyQueenSide(MyQueen));
 
     let resultSite = null;
-    let nearestDistance = FieldWidth;
+    let nearestDistance = FieldDiagonal;
 
     for (let s of sites) {
         if (s.canBuild()) {
