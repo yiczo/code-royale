@@ -22,6 +22,14 @@ class Site {
         this.structureType = structureType;
         this.owner = owner;
     }
+
+    distanceTo(x, y) {
+        return Math.sqrt( (this.x - x) * (this.x - x) + (this.y - y) * (this.y - y) );
+    }
+
+    canBuild() {
+        return (this.structureType === SiteStructureType.NoStructure) & (this.owner === SiteOwner.NoStructure);
+    }
 }
 
 const addSite = function(site) {

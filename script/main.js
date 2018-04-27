@@ -72,9 +72,10 @@ while (true) {
     // Write an action using print()
     // To debug: printErr('Debug messages...');
 
-
     // First line: A valid queen action
     // Second line: A set of training instructions
-    print('WAIT');
-    print('TRAIN');
+    // print('WAIT');
+    // print('TRAIN');
+
+    strategy1();
 }

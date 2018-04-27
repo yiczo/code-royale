@@ -10,4 +10,23 @@ const setInitialMyQueenPosition = function(queen) {
         initialMyQueenX = queen.x;
         initialMyQueenY = queen.y;
     }
+};
+
+const myQueenNearestCanBuildInitialSideSite = function() {
+    let sites = sitesInSide(initialMyQueenSide(MyQueen));
+
+    let resultSite = null;
+    let nearestDistance = FieldWidth;
+
+    for (let s of sites) {
+        if (s.canBuild()) {
+            let d = s.distanceTo(MyQueen.x, MyQueen.y)
+            if (d <= nearestDistance) {
+                nearestDistance = d;
+                resultSite = s;
+            }
+        }
+    }
+
+    return resultSite;
 }

@@ -11,6 +11,7 @@ buildify()
             'script/field.js',
             'script/tower.js',
             'script/unit.js',
+            'script/strategy.js',
             'script/main.js',
         ]
     )

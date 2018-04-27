@@ -1,6 +1,40 @@
 let Gold = 0;
 
+let KnightTrainPrice = 80;
 
+
+let initialMyQueenX = -1;
+let initialMyQueenY = -1;
+
+const setInitialMyQueenPosition = function(queen) {
+    if (queen === null) {
+        return;
+    }
+
+    if (initialMyQueenX === -1 & initialMyQueenY === -1) {
+        initialMyQueenX = queen.x;
+        initialMyQueenY = queen.y;
+    }
+};
+
+const myQueenNearestCanBuildInitialSideSite = function() {
+    let sites = sitesInSide(initialMyQueenSide(MyQueen));
+
+    let resultSite = null;
+    let nearestDistance = FieldWidth;
+
+    for (let s of sites) {
+        if (s.canBuild()) {
+            let d = s.distanceTo(MyQueen.x, MyQueen.y)
+            if (d <= nearestDistance) {
+                nearestDistance = d;
+                resultSite = s;
+            }
+        }
+    }
+
+    return resultSite;
+}
 
 const SiteStructureType = {
     'NoStructure': -1,
@@ -25,6 +59,14 @@ class Site {
         this.radius = radius;
         this.structureType = structureType;
         this.owner = owner;
+    }
+
+    distanceTo(x, y) {
+        return Math.sqrt( (this.x - x) * (this.x - x) + (this.y - y) * (this.y - y) );
+    }
+
+    canBuild() {
+        return (this.structureType === SiteStructureType.NoStructure) & (this.owner === SiteOwner.NoStructure);
     }
 }
 
@@ -102,6 +144,43 @@ class Barrack {
 
 const FieldWidth = 1920;
 const FieldHeight = 1000;
+
+const MagicSideDivideExtra = 0.1 * FieldWidth;
+
+const FieldSide = {
+    'Left': 'LeftSide',
+    'Right': 'RightSide',
+};
+
+const initialMyQueenSide = function(queen) {
+    if (queen.x <= FieldWidth * 0.5) {
+        return FieldSide.Left;
+    } else {
+        return FieldSide.Right;
+    }
+};
+
+const rangeForSide = function(side) {
+    if (side === FieldSide.Left) {
+        return [0, MagicSideDivideExtra + FieldWidth * 0.5];
+    } else {
+        return [FieldWidth * 0.5 - MagicSideDivideExtra, FieldWidth];
+    }
+};
+
+const sitesInSide = function(side) {
+    let resultSites = [];
+    let range = rangeForSide(side);
+    let keys = Object.keys(Sites);
+    for (let key of keys) {
+        let site = Sites[key];
+        if (site.x >= range[0] & site.x <= range[1]) {
+            resultSites.push(site);
+        }
+    }
+    return resultSites;
+}
+
 let MyTowers = [];
 let EnemyTowers = [];
 
@@ -112,16 +191,10 @@ const isTower = function(site) {
 const addTowerFromSite = function(site) {
     let tower = new Tower(site.siteId, site.x, site.y, site.radius);
     if (site.owner === SiteOwner.Friendly) {
-        addMyTower(tower);
+        MyTowers.push(tower);
     } else if (site.owner === SiteOwner.Enemy) {
-        addEnemyTower(tower);
+        EnemyTowers.push(tower);
     }
-};
-const addMyTower = function(tower) {
-    MyTowers.push(tower);
-};
-const addEnemyTower = function(tower) {
-    EnemyTowers.push(tower);
 };
 
 class Tower {
@@ -151,6 +224,8 @@ const addUnit = function(unit) {
     if (unit.owner === UnitOwner.Friendly) {
         if (unit.unitType === UnitType.Queen) {
             MyQueen = unit;
+            // remember initial my queen position
+            setInitialMyQueenPosition(unit);
         } else if (unit.unitType === UnitType.Knight) {
             MyKnights.push(unit);
         } else if (unit.unitType === UnitType.Archer) {
@@ -207,6 +282,27 @@ const clearKindsOfUnitStatus = function() {
     EnemyGiants = [];
 };
 
+
+const strategy1 = function() {
+    let nearest = myQueenNearestCanBuildInitialSideSite();
+    if (nearest === null) {
+        print('WAIT');
+    } else {
+        if (MyBarracks.length < 2) {
+            print('BUILD' + ' ' + nearest.siteId + ' ' + 'BARRACKS-KNIGHT');
+        } else {
+            print('BUILD' + ' ' + nearest.siteId + ' ' + 'TOWER');
+        }
+    }
+
+    let trainString = 'TRAIN';
+    if (Gold >= KnightTrainPrice * 2) {
+        for (let b of MyBarracks) {
+            trainString += ' ' + b.siteId;
+        }
+    }
+    print(trainString);
+};
 
 /**
  * Auto-generated code below aims at helping you parse
@@ -277,14 +373,15 @@ while (true) {
         addUnit(unit);
     }
 
-    printErr(EnemyKnights.length);
+    // printErr(EnemyKnights.length);
 
     // Write an action using print()
     // To debug: printErr('Debug messages...');
 
-
     // First line: A valid queen action
     // Second line: A set of training instructions
-    print('WAIT');
-    print('TRAIN');
+    // print('WAIT');
+    // print('TRAIN');
+
+    strategy1();
 }
