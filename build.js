@@ -1,6 +1,18 @@
 const buildify = require('buildify')
 
 buildify()
-    .concat(['script/1.js', 'script/2.js'])
+    .concat(
+        [
+            'script/gold.js',
+            'script/util.js',
+            'script/queen.js',
+            'script/site.js',
+            'script/barrack.js',
+            'script/field.js',
+            'script/tower.js',
+            'script/unit.js',
+            'script/main.js',
+        ]
+    )
     .save('distribution/output.js')
     
