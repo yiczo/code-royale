@@ -1,0 +1,2 @@
+let MyMines = [];
+let EnemyMines = [];

@@ -63,4 +63,7 @@ const clearKindsOfSiteStatus = function() {
 
     MyBarracks = [];
     EnemyBarracks = [];
+
+    MyMines = [];
+    EnemyMines = [];
 };
