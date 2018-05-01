@@ -101,6 +101,9 @@ const clearKindsOfSiteStatus = function() {
 
     MyBarracks = [];
     EnemyBarracks = [];
+
+    MyMines = [];
+    EnemyMines = [];
 };
 
 const BarrackType = {
@@ -304,6 +307,9 @@ const clearKindsOfUnitStatus = function() {
     EnemyGiants = [];
 };
 
+
+let MyMines = [];
+let EnemyMines = [];
 
 const strategy1 = function() {
     // 8 knights rush together, build towers in initial side

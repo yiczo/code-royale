@@ -1,4 +1,4 @@
-const buildify = require('buildify')
+const buildify = require('./buildify/index.js')
 
 buildify()
     .concat(
